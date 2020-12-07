@@ -2,9 +2,17 @@ import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import java.util.UUID;
 
+/**
+ * RequestGenerator is created to help stress test the entire distributed system with various loads.
+ * Example/default scenario: 100 different users each submitting single booking requests for a single dental office
+ * within a time-interval of ten seconds.
+ */
 public class RequestGenerator {
-    private final static int NUMBER_OF_REQUESTS = 3;
+    private final static int NUMBER_OF_REQUESTS_PER_USER = 3;
+
+    private final static long INTERVAL = 10000; // Milliseconds
 
     private final static String TOPIC = "BookingRequest";
 
@@ -22,7 +30,7 @@ public class RequestGenerator {
     public static void main(String[] args) {
         try {
             RequestGenerator requestGenerator = new RequestGenerator();
-            requestGenerator.publishRequest(NUMBER_OF_REQUESTS);
+            requestGenerator.publishRequest(NUMBER_OF_REQUESTS_PER_USER);
             requestGenerator.close();
         } catch (Exception e) {
             System.err.println("RIP RequestGenerator!");
@@ -42,8 +50,21 @@ public class RequestGenerator {
      */
     private void publishRequest(int number) throws MqttException {
         for (int i = 0; i < number; i++) {
+            sleep();
             sendRequest(fakeBooking(i));
             System.out.println("Sent request number " + (i+1));
+        }
+    }
+
+    /**
+     * Puts the thread to sleep for as long as the INTERVAL is set to. Small modifications, such as the parameters
+     * and the use of the INTERVAL variable, have been made to the example code.
+     */
+    private void sleep() {
+        try {
+            Thread.sleep(INTERVAL);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -60,16 +81,22 @@ public class RequestGenerator {
 
     /**
      * Creates a fake booking based on the number of the request.
-     * TODO: Update userid, dentistid, issuance, time to be dynamic
+     * TODO: Update userid, dentistid, time to be dynamic
      * @param number request number
      * @return Booking String/JSON
      */
     private String fakeBooking(int number) {
-        int userid = 99999;
-        int requestid = number;
+        int userid = 99999; // UUID.randomUUID() ?
+        int requestid = number+1;
         int dentistid = 1;
-        long issuance = 1602406766314L;
+        long issuance = System.currentTimeMillis();
         String time = "2020-12-14 14:30";
+
+        // The print outs are just for testing purposes
+        System.out.println("Possible user id: " + UUID.randomUUID());
+        System.out.println("{\n \"userid\": " + userid + ",\n\"requestid\": " + requestid +
+                ",\n\"dentistid\": " + dentistid + ",\n\"issuance\": " + issuance +
+                ",\n\"time\": \"" + time + "\" \n}");
 
         return "{\n \"userid\": " + userid + ",\n\"requestid\": " + requestid +
                 ",\n\"dentistid\": " + dentistid + ",\n\"issuance\": " + issuance +
