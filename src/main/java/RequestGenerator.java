@@ -8,6 +8,9 @@ import java.util.UUID;
  * RequestGenerator is created to help stress test the entire distributed system with various loads.
  * Example/default scenario: 100 different users each submitting single booking requests for a single dental office
  * within a time-interval of ten seconds.
+ *
+ * Current setup: 3 booking requests for the same time slot from one user to the same dentist with  a time-interval
+ * of ten seconds.
  */
 public class RequestGenerator {
     private final static int NUMBER_OF_REQUESTS_PER_USER = 3;
