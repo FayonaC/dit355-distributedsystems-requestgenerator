@@ -2,26 +2,27 @@ import org.eclipse.paho.client.mqttv3.IMqttClient;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 /**
  * RequestGenerator is created to help stress test the entire distributed system with various loads.
  * Example/default scenario: 100 different users each submitting single booking requests for a single dental office
  * within a time-interval of ten seconds.
- *
- * Current setup: 3 booking requests for the same time slot from 3 users to the same dentist.
  */
 public class RequestGenerator {
-    private final static int NUMBER_OF_REQUESTS_PER_USER = 3;
+    private final static int NUMBER_OF_REQUESTS_PER_USER = 1;
+
+    private final static int NUMBER_OF_USERS = 100;
+
+    private final static int DENTIST_ID = 1;
 
     private final static String TOPIC = "BookingRequest";
 
     private final static String BROKER = "tcp://localhost:1883";
 
     private final static String CLIENT_ID = "request-generator";
-
-    private final static int DENTIST_ID = 1;
-
-    private final static int NUMBER_OF_USERS = 3;
 
     private final IMqttClient middleware;
 
@@ -74,22 +75,35 @@ public class RequestGenerator {
 
     /**
      * Creates a fake booking.
-     * TODO: Update time to be dynamic & should userid = UUID.randomUUID() ?
+     * TODO: should userid = UUID.randomUUID()?
      * @param userid user id
      * @param requestid request id/number of the request
      * @return Booking String/JSON
      */
     private String fakeBooking(int userid, int requestid) {
         long issuance = System.currentTimeMillis();
-        String time = "2020-12-14 14:30";
+        String time = getVaryingDate();
 
-        // The print outs are just for testing purposes
-        System.out.println("{\n \"userid\": " + userid + ",\n\"requestid\": " + requestid +
-                ",\n\"dentistid\": " + DENTIST_ID + ",\n\"issuance\": " + issuance +
-                ",\n\"time\": \"" + time + "\" \n}");
+        String booking = "{\n \"userid\": " + userid + ",\n\"requestid\": " + requestid +
+                            ",\n\"dentistid\": " + DENTIST_ID + ",\n\"issuance\": " + issuance +
+                            ",\n\"time\": \"" + time + "\" \n}";
 
-        return "{\n \"userid\": " + userid + ",\n\"requestid\": " + requestid +
-                ",\n\"dentistid\": " + DENTIST_ID + ",\n\"issuance\": " + issuance +
-                ",\n\"time\": \"" + time + "\" \n}";
+        System.out.println(booking);
+        return booking;
+    }
+
+    /**
+     * Varies the date based on the current date.
+     * Randomizes days and hours to add to the current date and time.
+     * Minutes will always be 00, e.g. 12:00, to ensure a time slot is found.
+     * @return String with a varied date and time.
+     */
+    private String getVaryingDate() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime variedDate = now.plusDays(new Random().nextInt((30-1) +1))
+                .plusHours(new Random().nextInt((60-1) + 1))
+                .withMinute(0);
+
+        return variedDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
     }
 }

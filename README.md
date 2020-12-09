@@ -19,6 +19,6 @@ RequestGenerator is created to help stress test the entire distributed system wi
 ## How to setup a scenario
 To change: 
 * the number of requests made per user, change the `NUMBER_OF_REQUESTS_PER_USER` variable.
-* the time (ms) between requests, change the `INTERVAL` variable.
 * the topic to publish requests to, change the `TOPIC` variable.
-* the data in the request, change the variables at the top of the `fakeBooking()` method.
+* the dentist office to make booking requests to, change the `DENTIST_ID` variable.
+* the number of users that sends requests, change the `NUMBER_OF_USERS` variable.
